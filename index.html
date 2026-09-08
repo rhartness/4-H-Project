@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>One-Minute Speech Challenge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f1530;
+      --bg-2: #1a2250;
+      --card: #ffffff;
+      --text: #f7f8ff;
+      --text-dark: #1a1f3d;
+      --muted: #c5c9e8;
+      --accent: #ff6b4a;
+      --accent-2: #ffd166;
+      --good: #2ec4b6;
+      --focus: #7dd3fc;
+      --shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+      --radius: 28px;
+      --btn-radius: 999px;
+      --stage: CHOOSE;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
+      background:
+        radial-gradient(ellipse at 20% 10%, rgba(255, 107, 74, 0.18), transparent 45%),
+        radial-gradient(ellipse at 80% 0%, rgba(255, 209, 102, 0.16), transparent 40%),
+        radial-gradient(ellipse at 50% 100%, rgba(46, 196, 182, 0.14), transparent 45%),
+        linear-gradient(160deg, var(--bg), var(--bg-2));
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      appearance: none;
+    }
+
+    button:focus-visible,
+    .topic-card:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+    }
+
+    .app {
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      padding: 1rem 1.25rem 2rem;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+      min-height: 3rem;
+    }
+
+    .progress {
+      display: none;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      font-size: clamp(0.85rem, 1.6vw, 1.05rem);
+      color: var(--muted);
+    }
+
+    .progress.visible { display: flex; }
+
+    .progress .step {
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 2px solid transparent;
+    }
+
+    .progress .step.active {
+      color: var(--text-dark);
+      background: var(--accent-2);
+      border-color: #fff3b0;
+      box-shadow: 0 0 0 2px rgba(255, 209, 102, 0.35);
+    }
+
+    .progress .arrow { opacity: 0.55; }
+
+    .chrome-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-left: auto;
+    }
+
+    .icon-btn {
+      width: 2.6rem;
+      height: 2.6rem;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      font-size: 1.15rem;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .icon-btn:hover { background: rgba(255, 255, 255, 0.18); }
+    .icon-btn:active { transform: scale(0.94); }
+
+    .leader-panel {
+      position: fixed;
+      top: 4.2rem;
+      right: 1rem;
+      z-index: 40;
+      width: min(280px, calc(100vw - 2rem));
+      background: #fff;
+      color: var(--text-dark);
+      border-radius: 18px;
+      padding: 1rem;
+      box-shadow: var(--shadow);
+      display: none;
+    }
+
+    .leader-panel.open { display: block; }
+
+    .leader-panel h2 {
+      margin: 0 0 0.75rem;
+      font-family: "Fredoka", "Nunito", sans-serif;
+      font-size: 1.15rem;
+    }
+
+    .leader-panel .panel-actions {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .leader-panel button {
+      width: 100%;
+      padding: 0.7rem 0.9rem;
+      border-radius: 12px;
+      background: #eef1ff;
+      color: var(--text-dark);
+      font-weight: 800;
+      font-size: 0.95rem;
+      text-align: left;
+    }
+
+    .leader-panel button:hover { background: #dde3ff; }
+
+    .leader-panel .hint {
+      margin: 0.75rem 0 0;
+      font-size: 0.8rem;
+      color: #5b6188;
+    }
+
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      background: transparent;
+      z-index: 30;
+      display: none;
+    }
+
+    .backdrop.open { display: block; }
+
+    .screen {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      animation: fadeIn 0.35s ease;
+      padding: 0.5rem 0 1rem;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1, h2, .display-title {
+      font-family: "Fredoka", "Nunito", sans-serif;
+      margin: 0;
+      line-height: 1.08;
+      font-weight: 700;
+    }
+
+    .welcome-deco {
+      font-size: clamp(2.5rem, 8vw, 4rem);
+      margin-bottom: 0.75rem;
+      filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.35));
+    }
+
+    .hero-title {
+      font-size: clamp(2.4rem, 8vw, 4.6rem);
+      letter-spacing: 0.02em;
+    }
+
+    .hero-title span {
+      display: block;
+      color: var(--accent-2);
+    }
+
+    .subtitle {
+      margin: 1rem auto 2rem;
+      max-width: 28ch;
+      font-size: clamp(1.15rem, 2.8vw, 1.5rem);
+      color: var(--muted);
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      min-height: 3.4rem;
+      padding: 0.9rem 1.8rem;
+      border-radius: var(--btn-radius);
+      font-weight: 800;
+      font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+      letter-spacing: 0.03em;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+    }
+
+    .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+    .btn:active { transform: translateY(1px) scale(0.98); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ff7a59, #ff4d6d);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--text);
+      border: 2px solid rgba(255, 255, 255, 0.28);
+      box-shadow: none;
+    }
+
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.18); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      box-shadow: none;
+      border: 2px solid transparent;
+      min-height: 2.8rem;
+      font-size: 1rem;
+    }
+
+    .btn-ghost:hover {
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .section-title {
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      margin-bottom: 1.25rem;
+    }
+
+    .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      width: 100%;
+      max-width: 980px;
+    }
+
+    .topic-card {
+      background: var(--card);
+      color: var(--text-dark);
+      border-radius: var(--radius);
+      padding: 1.35rem 1rem;
+      min-height: 9.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      box-shadow: var(--shadow);
+      border: 4px solid transparent;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .topic-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--topic-accent) 18%, transparent), transparent 55%);
+      pointer-events: none;
+    }
+
+    .topic-card:hover,
+    .topic-card:focus-visible {
+      transform: translateY(-6px);
+      box-shadow: 0 22px 42px rgba(0, 0, 0, 0.4);
+      border-color: var(--topic-accent);
+    }
+
+    .topic-card .icon {
+      font-size: clamp(2.4rem, 6vw, 3.4rem);
+      line-height: 1;
+      position: relative;
+    }
+
+    .topic-card .name {
+      font-family: "Fredoka", "Nunito", sans-serif;
+      font-size: clamp(1.15rem, 2.8vw, 1.55rem);
+      font-weight: 700;
+      position: relative;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.96);
+      color: var(--text-dark);
+      border-radius: var(--radius);
+      padding: clamp(1.2rem, 3vw, 2rem);
+      width: min(820px, 100%);
+      box-shadow: var(--shadow);
+      border-top: 8px solid var(--topic-accent, var(--accent));
+    }
+
+    .think-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      margin-bottom: 1rem;
+    }
+
+    .think-header .icon { font-size: clamp(2rem, 5vw, 2.8rem); }
+
+    .think-header h2 {
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      color: var(--text-dark);
+    }
+
+    .prompt-main {
+      font-size: clamp(1.35rem, 3.4vw, 2rem);
+      font-weight: 800;
+      margin: 0 0 0.75rem;
+      line-height: 1.25;
+    }
+
+    .prompt-app {
+      font-size: clamp(1.1rem, 2.6vw, 1.4rem);
+      font-weight: 700;
+      margin: 0 0 1.25rem;
+      color: #3d446e;
+      line-height: 1.35;
+    }
+
+    .bubbles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .bubble {
+      background: color-mix(in srgb, var(--topic-accent, #ff6b4a) 16%, #fff);
+      border: 2px solid color-mix(in srgb, var(--topic-accent, #ff6b4a) 45%, #fff);
+      color: var(--text-dark);
+      border-radius: 999px;
+      padding: 0.55rem 0.95rem;
+      font-weight: 700;
+      font-size: clamp(0.9rem, 2vw, 1.05rem);
+    }
+
+    .think-note {
+      margin: 0 0 1.25rem;
+      font-size: clamp(1rem, 2.2vw, 1.2rem);
+      font-weight: 800;
+      color: #5a618c;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .intro-lines {
+      display: grid;
+      gap: 0.85rem;
+      margin: 1.25rem 0 1.5rem;
+      text-align: left;
+    }
+
+    .intro-line {
+      background: #f3f5ff;
+      border-radius: 16px;
+      padding: 0.9rem 1.1rem;
+      font-size: clamp(1.15rem, 3vw, 1.55rem);
+      font-weight: 800;
+      border-left: 6px solid var(--topic-accent, var(--accent));
+    }
+
+    .topic-callout {
+      font-size: clamp(1.2rem, 3vw, 1.6rem);
+      font-weight: 800;
+      margin: 0 0 1.4rem;
+    }
+
+    .start-word {
+      font-family: "Fredoka", "Nunito", sans-serif;
+      font-size: clamp(3rem, 14vw, 7rem);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      min-height: 1.2em;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .start-word.pop {
+      animation: popIn 0.45s ease;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.7); opacity: 0; }
+      60% { transform: scale(1.08); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .timer-topic {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: "Fredoka", "Nunito", sans-serif;
+      font-size: clamp(1.3rem, 3.5vw, 2rem);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      padding: 0.45rem 1rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid color-mix(in srgb, var(--topic-accent, #fff) 55%, transparent);
+    }
+
+    .timer-display {
+      font-family: "Fredoka", "Nunito", sans-serif;
+      font-size: clamp(5.5rem, 22vw, 11rem);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      margin: 0.2rem 0;
+      text-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .timer-display.pulse {
+      animation: timerPulse 0.55s ease;
+    }
+
+    @keyframes timerPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+    }
+
+    .timer-encourage {
+      min-height: 2.2em;
+      font-size: clamp(1.3rem, 3.5vw, 2rem);
+      font-weight: 800;
+      color: var(--accent-2);
+      margin: 0.5rem 0 0;
+    }
+
+    .timer-hint {
+      margin: 0.75rem 0 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 2.2vw, 1.25rem);
+      font-weight: 700;
+    }
+
+    .finished-emoji {
+      font-size: clamp(3.5rem, 10vw, 5.5rem);
+      margin-bottom: 0.25rem;
+      animation: celebrate 1.2s ease;
+    }
+
+    @keyframes celebrate {
+      0% { transform: scale(0.6) rotate(-8deg); opacity: 0; }
+      50% { transform: scale(1.15) rotate(6deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0); }
+    }
+
+    .finished-title {
+      font-size: clamp(2.8rem, 10vw, 5rem);
+      color: var(--accent-2);
+    }
+
+    .finished-sub {
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      margin: 0.35rem 0 0.75rem;
+    }
+
+    .finished-msg {
+      color: var(--muted);
+      font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+      font-weight: 700;
+      margin: 0 0 1.75rem;
+      line-height: 1.4;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 800px) {
+      .topic-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 480px) {
+      .app { padding: 0.75rem 0.85rem 1.5rem; }
+      .topic-card { min-height: 8rem; padding: 1rem 0.7rem; }
+      .btn { width: 100%; }
+      .actions { width: 100%; }
+      .actions .btn-ghost { width: 100%; }
+    }
+
+    @media (orientation: landscape) and (min-width: 900px) {
+      .app {
+        padding-top: 0.75rem;
+        padding-bottom: 1rem;
+      }
+      .topic-card { min-height: 8.5rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .screen { animation: none; }
+      .topic-card:hover,
+      .topic-card:focus-visible { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="top-bar">
+      <nav class="progress" id="progress" aria-label="Activity progress" hidden>
+        <span class="step" data-stage="CHOOSE">CHOOSE</span>
+        <span class="arrow" aria-hidden="true">→</span>
+        <span class="step" data-stage="THINK">THINK</span>
+        <span class="arrow" aria-hidden="true">→</span>
+        <span class="step" data-stage="SPEAK">SPEAK</span>
+      </nav>
+      <div class="chrome-actions">
+        <button type="button" class="icon-btn" id="muteBtn" aria-pressed="true" aria-label="Unmute sounds" title="Sound">🔇</button>
+        <button type="button" class="icon-btn" id="leaderBtn" aria-expanded="false" aria-controls="leaderPanel" aria-label="Leader controls" title="Leader controls">⚙</button>
+      </div>
+    </div>
+
+    <div class="backdrop" id="leaderBackdrop" hidden></div>
+    <aside class="leader-panel" id="leaderPanel" aria-label="Leader controls" hidden>
+      <h2>Leader Controls</h2>
+      <div class="panel-actions">
+        <button type="button" id="leaderRestartActivity">Restart activity</button>
+        <button type="button" id="leaderReturnTopics">Return to topic selection</button>
+        <button type="button" id="leaderRestartTimer">Restart timer</button>
+        <button type="button" id="leaderPauseTimer">Pause timer</button>
+        <button type="button" id="leaderResumeTimer">Resume timer</button>
+      </div>
+      <p class="hint">Hidden from kids — use anytime during the session.</p>
+    </aside>
+
+    <!-- WELCOME -->
+    <section class="screen active" id="welcome" data-screen="welcome" aria-labelledby="welcome-title">
+      <div class="welcome-deco" aria-hidden="true">🎤 ✨</div>
+      <h1 class="hero-title" id="welcome-title">ONE-MINUTE<br /><span>SPEECH CHALLENGE</span></h1>
+      <p class="subtitle">Choose something interesting.<br />Think about it.<br />Tell us about it!</p>
+      <button type="button" class="btn btn-primary" id="letsGoBtn">LET'S GO!</button>
+    </section>
+
+    <!-- CHOOSE TOPIC -->
+    <section class="screen" id="choose" data-screen="choose" aria-labelledby="choose-title" hidden>
+      <h2 class="section-title" id="choose-title">CHOOSE YOUR CHALLENGE!</h2>
+      <div class="topic-grid" id="topicGrid" role="list"></div>
+    </section>
+
+    <!-- THINK -->
+    <section class="screen" id="think" data-screen="think" aria-labelledby="think-title" hidden>
+      <div class="card" id="thinkCard">
+        <div class="think-header">
+          <span class="icon" id="thinkIcon" aria-hidden="true"></span>
+          <h2 id="think-title"></h2>
+        </div>
+        <p class="prompt-main" id="thinkMain"></p>
+        <p class="prompt-app" id="thinkApp"></p>
+        <div class="bubbles" id="thinkBubbles" aria-label="Helpful thinking prompts"></div>
+        <p class="think-note">You have 30 seconds to think!</p>
+        <div class="actions">
+          <button type="button" class="btn btn-ghost" id="thinkBackBtn">← CHOOSE ANOTHER TOPIC</button>
+          <button type="button" class="btn btn-primary" id="thinkReadyBtn">READY →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- GET READY -->
+    <section class="screen" id="getReady" data-screen="getReady" aria-labelledby="getReady-title" hidden>
+      <div class="card" id="getReadyCard">
+        <h2 class="section-title" id="getReady-title" style="color: var(--text-dark); margin-bottom: 0.35rem;">🎤 GET READY!</h2>
+        <p class="prompt-app" style="margin-bottom: 0;">Start your speech by telling us:</p>
+        <div class="intro-lines">
+          <div class="intro-line">“My name is __________.”</div>
+          <div class="intro-line">“I live in __________ County.”</div>
+          <div class="intro-line">“I am __________ years old.”</div>
+        </div>
+        <p class="topic-callout" id="getReadyTopicCallout"></p>
+        <div class="actions">
+          <button type="button" class="btn btn-ghost" id="getReadyBackBtn">← CHOOSE ANOTHER TOPIC</button>
+          <button type="button" class="btn btn-primary" id="startSpeechBtn">START MY SPEECH</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- START TRANSITION -->
+    <section class="screen" id="start" data-screen="start" aria-live="assertive" hidden>
+      <p class="sr-only">Get ready to speak</p>
+      <div class="start-word" id="startWord">READY...</div>
+    </section>
+
+    <!-- TIMER -->
+    <section class="screen" id="timer" data-screen="timer" aria-labelledby="timerDisplay" hidden>
+      <div class="timer-topic" id="timerTopic"></div>
+      <div class="timer-display" id="timerDisplay" aria-live="polite">1:00</div>
+      <p class="timer-encourage" id="timerEncourage">START!</p>
+      <p class="timer-hint">Tell us what you know!</p>
+    </section>
+
+    <!-- FINISHED -->
+    <section class="screen" id="finished" data-screen="finished" aria-labelledby="finished-title" hidden>
+      <div class="finished-emoji" aria-hidden="true">🎉</div>
+      <h2 class="finished-title" id="finished-title">TIME!</h2>
+      <p class="finished-sub">GREAT JOB!</p>
+      <p class="finished-msg">You completed your<br />ONE-MINUTE SPEECH!</p>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="finishedChooseBtn">CHOOSE ANOTHER TOPIC</button>
+        <button type="button" class="btn btn-secondary" id="finishedAgainBtn">DO THE SAME TOPIC AGAIN</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const TOPICS = [
+        {
+          id: "magnets",
+          name: "Magnets",
+          icon: "🧲",
+          accent: "#e63946",
+          mainPrompt: "What do you like BEST about magnets?",
+          applicationPrompt: "How could magnets be useful in everyday life?",
+          thoughtPrompt1: "What makes them interesting?",
+          thoughtPrompt2: "Where do we use them?",
+          thoughtPrompt3: "What could you make with them?"
+        },
+        {
+          id: "dinosaurs",
+          name: "Dinosaurs",
+          icon: "🦖",
+          accent: "#2a9d8f",
+          mainPrompt: "What do you like BEST about dinosaurs?",
+          applicationPrompt: "How could something we know about dinosaurs be useful in everyday life?",
+          thoughtPrompt1: "Which dinosaur interests you most?",
+          thoughtPrompt2: "What makes dinosaurs amazing?",
+          thoughtPrompt3: "What can dinosaurs teach us?"
+        },
+        {
+          id: "ants",
+          name: "Ants",
+          icon: "🐜",
+          accent: "#f4a261",
+          mainPrompt: "What do you like BEST about ants?",
+          applicationPrompt: "How could something we learn from ants be useful in everyday life?",
+          thoughtPrompt1: "What can ants do?",
+          thoughtPrompt2: "How do ants work together?",
+          thoughtPrompt3: "What can people learn from them?"
+        },
+        {
+          id: "tractors",
+          name: "Tractors",
+          icon: "🚜",
+          accent: "#457b9d",
+          mainPrompt: "What do you like BEST about tractors?",
+          applicationPrompt: "How are tractors useful in everyday life?",
+          thoughtPrompt1: "What can a tractor do?",
+          thoughtPrompt2: "Who uses tractors?",
+          thoughtPrompt3: "What would be harder without tractors?"
+        },
+        {
+          id: "rockets",
+          name: "Rockets",
+          icon: "🚀",
+          accent: "#9b5de5",
+          mainPrompt: "What do you like BEST about rockets?",
+          applicationPrompt: "How have rockets or space technology helped people in everyday life?",
+          thoughtPrompt1: "What makes rockets amazing?",
+          thoughtPrompt2: "What can rockets help us do?",
+          thoughtPrompt3: "What have we learned from space?"
+        },
+        {
+          id: "robots",
+          name: "Robots",
+          icon: "🤖",
+          accent: "#00bbf9",
+          mainPrompt: "What do you like BEST about robots?",
+          applicationPrompt: "How could robots be useful in everyday life?",
+          thoughtPrompt1: "What can robots do?",
+          thoughtPrompt2: "What jobs could robots help with?",
+          thoughtPrompt3: "What would you invent?"
+        }
+      ];
+
+      const TIMER_SECONDS = 60;
+      const SCREEN_STAGE = {
+        welcome: null,
+        choose: "CHOOSE",
+        think: "THINK",
+        getReady: "SPEAK",
+        start: "SPEAK",
+        timer: "SPEAK",
+        finished: "SPEAK"
+      };
+
+      const state = {
+        currentScreen: "welcome",
+        selectedTopicId: null,
+        timerRemaining: TIMER_SECONDS,
+        timerRunning: false,
+        timerPaused: false,
+        audioMuted: true,
+        endAt: null,
+        pausedLeft: null
+      };
+
+      let timerIntervalId = null;
+      let startTimeoutIds = [];
+      let audioCtx = null;
+
+      const els = {
+        progress: document.getElementById("progress"),
+        muteBtn: document.getElementById("muteBtn"),
+        leaderBtn: document.getElementById("leaderBtn"),
+        leaderPanel: document.getElementById("leaderPanel"),
+        leaderBackdrop: document.getElementById("leaderBackdrop"),
+        topicGrid: document.getElementById("topicGrid"),
+        thinkCard: document.getElementById("thinkCard"),
+        thinkIcon: document.getElementById("thinkIcon"),
+        thinkTitle: document.getElementById("think-title"),
+        thinkMain: document.getElementById("thinkMain"),
+        thinkApp: document.getElementById("thinkApp"),
+        thinkBubbles: document.getElementById("thinkBubbles"),
+        getReadyCard: document.getElementById("getReadyCard"),
+        getReadyTopicCallout: document.getElementById("getReadyTopicCallout"),
+        startWord: document.getElementById("startWord"),
+        timerTopic: document.getElementById("timerTopic"),
+        timerDisplay: document.getElementById("timerDisplay"),
+        timerEncourage: document.getElementById("timerEncourage"),
+        screens: {
+          welcome: document.getElementById("welcome"),
+          choose: document.getElementById("choose"),
+          think: document.getElementById("think"),
+          getReady: document.getElementById("getReady"),
+          start: document.getElementById("start"),
+          timer: document.getElementById("timer"),
+          finished: document.getElementById("finished")
+        }
+      };
+
+      function getTopic() {
+        return TOPICS.find((t) => t.id === state.selectedTopicId) || null;
+      }
+
+      function setTopicAccent(topic) {
+        const accent = topic ? topic.accent : "#ff6b4a";
+        document.documentElement.style.setProperty("--topic-accent", accent);
+        els.thinkCard.style.setProperty("--topic-accent", accent);
+        els.getReadyCard.style.setProperty("--topic-accent", accent);
+      }
+
+      function closeLeaderPanel() {
+        els.leaderPanel.classList.remove("open");
+        els.leaderPanel.hidden = true;
+        els.leaderBackdrop.classList.remove("open");
+        els.leaderBackdrop.hidden = true;
+        els.leaderBtn.setAttribute("aria-expanded", "false");
+      }
+
+      function toggleLeaderPanel() {
+        const open = els.leaderPanel.classList.toggle("open");
+        els.leaderPanel.hidden = !open;
+        els.leaderBackdrop.classList.toggle("open", open);
+        els.leaderBackdrop.hidden = !open;
+        els.leaderBtn.setAttribute("aria-expanded", String(open));
+      }
+
+      function updateProgress(screen) {
+        const stage = SCREEN_STAGE[screen];
+        if (!stage) {
+          els.progress.hidden = true;
+          els.progress.classList.remove("visible");
+          return;
+        }
+        els.progress.hidden = false;
+        els.progress.classList.add("visible");
+        els.progress.querySelectorAll(".step").forEach((step) => {
+          const active = step.dataset.stage === stage;
+          step.classList.toggle("active", active);
+          if (active) {
+            step.setAttribute("aria-current", "step");
+          } else {
+            step.removeAttribute("aria-current");
+          }
+        });
+      }
+
+      function stopTimer({ reset = true } = {}) {
+        if (timerIntervalId !== null) {
+          clearInterval(timerIntervalId);
+          timerIntervalId = null;
+        }
+        state.timerRunning = false;
+        state.timerPaused = false;
+        state.endAt = null;
+        state.pausedLeft = null;
+        if (reset) {
+          state.timerRemaining = TIMER_SECONDS;
+        }
+      }
+
+      function clearStartSequence() {
+        startTimeoutIds.forEach((id) => clearTimeout(id));
+        startTimeoutIds = [];
+      }
+
+      function formatTime(totalSeconds) {
+        const s = Math.max(0, Math.ceil(totalSeconds));
+        const m = Math.floor(s / 60);
+        const rem = s % 60;
+        return m + ":" + String(rem).padStart(2, "0");
+      }
+
+      function encouragementFor(seconds) {
+        if (seconds > 45) return "START!";
+        if (seconds > 30) return "KEEP GOING!";
+        if (seconds > 15) return "YOU'RE HALFWAY THERE!";
+        if (seconds > 5) return "BRING IT HOME!";
+        if (seconds > 0) return String(seconds) + "...";
+        return "TIME!";
+      }
+
+      function renderTimer() {
+        const sec = Math.max(0, Math.ceil(state.timerRemaining));
+        els.timerDisplay.textContent = formatTime(sec);
+        els.timerEncourage.textContent = encouragementFor(sec);
+        const milestones = [60, 45, 30, 15, 5, 4, 3, 2, 1];
+        if (milestones.includes(sec)) {
+          els.timerDisplay.classList.remove("pulse");
+          void els.timerDisplay.offsetWidth;
+          els.timerDisplay.classList.add("pulse");
+        }
+      }
+
+      function ensureAudio() {
+        if (!audioCtx) {
+          const Ctx = window.AudioContext || window.webkitAudioContext;
+          if (!Ctx) return null;
+          audioCtx = new Ctx();
+        }
+        if (audioCtx.state === "suspended") {
+          audioCtx.resume();
+        }
+        return audioCtx;
+      }
+
+      function playTone({ freq = 520, duration = 0.12, type = "sine", gain = 0.05 } = {}) {
+        if (state.audioMuted) return;
+        const ctx = ensureAudio();
+        if (!ctx) return;
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        g.gain.value = gain;
+        osc.connect(g);
+        g.connect(ctx.destination);
+        const now = ctx.currentTime;
+        g.gain.setValueAtTime(gain, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + duration);
+        osc.start(now);
+        osc.stop(now + duration);
+      }
+
+      function soundClick() {
+        playTone({ freq: 640, duration: 0.07, gain: 0.04 });
+      }
+
+      function soundSelect() {
+        playTone({ freq: 440, duration: 0.08, gain: 0.045 });
+        setTimeout(() => playTone({ freq: 660, duration: 0.1, gain: 0.045 }), 70);
+      }
+
+      function soundStart() {
+        playTone({ freq: 523, duration: 0.1, gain: 0.05 });
+        setTimeout(() => playTone({ freq: 659, duration: 0.1, gain: 0.05 }), 120);
+        setTimeout(() => playTone({ freq: 784, duration: 0.16, gain: 0.055 }), 240);
+      }
+
+      function soundTimeUp() {
+        playTone({ freq: 392, duration: 0.18, type: "triangle", gain: 0.06 });
+        setTimeout(() => playTone({ freq: 523, duration: 0.22, type: "triangle", gain: 0.06 }), 160);
+      }
+
+      function showScreen(name) {
+        if (state.currentScreen === "timer" && name !== "timer") {
+          stopTimer({ reset: true });
+        }
+        if (state.currentScreen === "start" && name !== "start") {
+          clearStartSequence();
+        }
+
+        Object.keys(els.screens).forEach((key) => {
+          const el = els.screens[key];
+          const active = key === name;
+          el.classList.toggle("active", active);
+          el.hidden = !active;
+        });
+
+        state.currentScreen = name;
+        updateProgress(name);
+        closeLeaderPanel();
+      }
+
+      function renderTopicGrid() {
+        els.topicGrid.innerHTML = "";
+        TOPICS.forEach((topic) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "topic-card";
+          btn.setAttribute("role", "listitem");
+          btn.setAttribute("aria-label", "Choose topic: " + topic.name);
+          btn.style.setProperty("--topic-accent", topic.accent);
+          btn.innerHTML =
+            '<span class="icon" aria-hidden="true">' + topic.icon + "</span>" +
+            '<span class="name">' + topic.name.toUpperCase() + "</span>";
+          btn.addEventListener("click", () => selectTopic(topic.id));
+          els.topicGrid.appendChild(btn);
+        });
+      }
+
+      function renderThink(topic) {
+        setTopicAccent(topic);
+        els.thinkIcon.textContent = topic.icon;
+        els.thinkTitle.textContent = topic.name.toUpperCase();
+        els.thinkMain.textContent = topic.mainPrompt;
+        els.thinkApp.textContent = topic.applicationPrompt;
+        els.thinkBubbles.innerHTML = "";
+        [topic.thoughtPrompt1, topic.thoughtPrompt2, topic.thoughtPrompt3].forEach((text) => {
+          const span = document.createElement("span");
+          span.className = "bubble";
+          span.textContent = text;
+          els.thinkBubbles.appendChild(span);
+        });
+      }
+
+      function renderGetReady(topic) {
+        setTopicAccent(topic);
+        els.getReadyTopicCallout.textContent =
+          "Now tell us about " + topic.name.toUpperCase() + "!";
+      }
+
+      function renderTimerChrome(topic) {
+        setTopicAccent(topic);
+        els.timerTopic.innerHTML =
+          '<span aria-hidden="true">' + topic.icon + "</span> " +
+          "<span>" + topic.name.toUpperCase() + "</span>";
+      }
+
+      function selectTopic(id) {
+        soundSelect();
+        state.selectedTopicId = id;
+        const topic = getTopic();
+        renderThink(topic);
+        showScreen("think");
+      }
+
+      function goChoose() {
+        stopTimer({ reset: true });
+        clearStartSequence();
+        showScreen("choose");
+      }
+
+      function goThinkSameTopic() {
+        const topic = getTopic();
+        if (!topic) {
+          goChoose();
+          return;
+        }
+        stopTimer({ reset: true });
+        clearStartSequence();
+        renderThink(topic);
+        showScreen("think");
+      }
+
+      function goGetReady() {
+        const topic = getTopic();
+        if (!topic) {
+          goChoose();
+          return;
+        }
+        soundClick();
+        renderGetReady(topic);
+        showScreen("getReady");
+      }
+
+      function tickTimer() {
+        if (!state.timerRunning || state.timerPaused || !state.endAt) return;
+
+        const leftMs = state.endAt - Date.now();
+        const leftSec = leftMs / 1000;
+        state.timerRemaining = Math.max(0, leftSec);
+        renderTimer();
+
+        if (leftMs <= 0) {
+          stopTimer({ reset: false });
+          state.timerRemaining = 0;
+          renderTimer();
+          soundTimeUp();
+          showScreen("finished");
+        }
+      }
+
+      function startTimerClock() {
+        stopTimer({ reset: false });
+        state.timerRemaining = TIMER_SECONDS;
+        state.timerRunning = true;
+        state.timerPaused = false;
+        state.endAt = Date.now() + TIMER_SECONDS * 1000;
+        renderTimer();
+        timerIntervalId = setInterval(tickTimer, 200);
+      }
+
+      function pauseTimer() {
+        if (!state.timerRunning || state.timerPaused || !state.endAt) return;
+        state.pausedLeft = Math.max(0, state.endAt - Date.now());
+        state.timerPaused = true;
+        state.endAt = null;
+        if (timerIntervalId !== null) {
+          clearInterval(timerIntervalId);
+          timerIntervalId = null;
+        }
+      }
+
+      function resumeTimer() {
+        if (!state.timerPaused || state.pausedLeft == null) return;
+        state.endAt = Date.now() + state.pausedLeft;
+        state.pausedLeft = null;
+        state.timerPaused = false;
+        state.timerRunning = true;
+        if (timerIntervalId !== null) clearInterval(timerIntervalId);
+        timerIntervalId = setInterval(tickTimer, 200);
+        tickTimer();
+      }
+
+      function restartTimer() {
+        if (state.currentScreen !== "timer" && state.currentScreen !== "start") {
+          const topic = getTopic();
+          if (!topic) return;
+          renderTimerChrome(topic);
+          showScreen("timer");
+        }
+        clearStartSequence();
+        startTimerClock();
+      }
+
+      function beginSpeechSequence() {
+        const topic = getTopic();
+        if (!topic) {
+          goChoose();
+          return;
+        }
+        soundClick();
+        clearStartSequence();
+        stopTimer({ reset: true });
+        renderTimerChrome(topic);
+        showScreen("start");
+
+        const words = ["READY...", "SET...", "SPEAK!"];
+        let i = 0;
+        els.startWord.textContent = words[0];
+        els.startWord.classList.remove("pop");
+        void els.startWord.offsetWidth;
+        els.startWord.classList.add("pop");
+
+        const step = () => {
+          i += 1;
+          if (i < words.length) {
+            els.startWord.textContent = words[i];
+            els.startWord.classList.remove("pop");
+            void els.startWord.offsetWidth;
+            els.startWord.classList.add("pop");
+            startTimeoutIds.push(setTimeout(step, 850));
+          } else {
+            soundStart();
+            showScreen("timer");
+            startTimerClock();
+          }
+        };
+        startTimeoutIds.push(setTimeout(step, 850));
+      }
+
+      function restartActivity() {
+        stopTimer({ reset: true });
+        clearStartSequence();
+        state.selectedTopicId = null;
+        setTopicAccent(null);
+        showScreen("welcome");
+      }
+
+      function updateMuteButton() {
+        els.muteBtn.textContent = state.audioMuted ? "🔇" : "🔊";
+        els.muteBtn.setAttribute("aria-pressed", String(state.audioMuted));
+        els.muteBtn.setAttribute(
+          "aria-label",
+          state.audioMuted ? "Unmute sounds" : "Mute sounds"
+        );
+      }
+
+      function bindEvents() {
+        document.getElementById("letsGoBtn").addEventListener("click", () => {
+          soundClick();
+          goChoose();
+        });
+
+        document.getElementById("thinkReadyBtn").addEventListener("click", goGetReady);
+        document.getElementById("thinkBackBtn").addEventListener("click", () => {
+          soundClick();
+          goChoose();
+        });
+        document.getElementById("getReadyBackBtn").addEventListener("click", () => {
+          soundClick();
+          goChoose();
+        });
+        document.getElementById("startSpeechBtn").addEventListener("click", beginSpeechSequence);
+        document.getElementById("finishedChooseBtn").addEventListener("click", () => {
+          soundClick();
+          goChoose();
+        });
+        document.getElementById("finishedAgainBtn").addEventListener("click", () => {
+          soundClick();
+          goThinkSameTopic();
+        });
+
+        els.muteBtn.addEventListener("click", () => {
+          state.audioMuted = !state.audioMuted;
+          updateMuteButton();
+          if (!state.audioMuted) {
+            ensureAudio();
+            soundClick();
+          }
+        });
+
+        els.leaderBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          toggleLeaderPanel();
+        });
+        els.leaderBackdrop.addEventListener("click", closeLeaderPanel);
+
+        document.getElementById("leaderRestartActivity").addEventListener("click", () => {
+          restartActivity();
+        });
+        document.getElementById("leaderReturnTopics").addEventListener("click", () => {
+          goChoose();
+        });
+        document.getElementById("leaderRestartTimer").addEventListener("click", () => {
+          if (!getTopic()) return;
+          restartTimer();
+          closeLeaderPanel();
+        });
+        document.getElementById("leaderPauseTimer").addEventListener("click", () => {
+          pauseTimer();
+          closeLeaderPanel();
+        });
+        document.getElementById("leaderResumeTimer").addEventListener("click", () => {
+          resumeTimer();
+          closeLeaderPanel();
+        });
+
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") closeLeaderPanel();
+        });
+      }
+
+      function init() {
+        renderTopicGrid();
+        updateMuteButton();
+        updateProgress("welcome");
+        bindEvents();
+        showScreen("welcome");
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
