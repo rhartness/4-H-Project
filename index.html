@@ -592,7 +592,7 @@
         <span class="step" data-stage="SPEAK">SPEAK</span>
       </nav>
       <div class="chrome-actions">
-        <button type="button" class="icon-btn" id="muteBtn" aria-pressed="true" aria-label="Unmute sounds" title="Sound">🔇</button>
+        <button type="button" class="icon-btn" id="muteBtn" aria-pressed="false" aria-label="Mute sounds" title="Sound">🔊</button>
         <button type="button" class="icon-btn" id="leaderBtn" aria-expanded="false" aria-controls="leaderPanel" aria-label="Leader controls" title="Leader controls">⚙</button>
       </div>
     </div>
@@ -777,7 +777,7 @@
         timerRemaining: TIMER_SECONDS,
         timerRunning: false,
         timerPaused: false,
-        audioMuted: true,
+        audioMuted: false,
         endAt: null,
         pausedLeft: null
       };
